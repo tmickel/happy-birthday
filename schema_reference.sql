@@ -1,0 +1,1 @@
+create table birthdays (id serial, name varchar, month varchar, day integer);
