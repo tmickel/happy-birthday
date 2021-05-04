@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 
 	_ "github.com/lib/pq"
 )
@@ -22,7 +23,7 @@ type TemplateData struct {
 }
 
 func run() error {
-	db, err := sql.Open("postgres", "postgres://gouser:gopassword@postgres.local:5432/godb?sslmode=disable")
+	db, err := sql.Open("postgres", os.Getenv("PG_DSN"))
 	if err != nil {
 		return err
 	}
