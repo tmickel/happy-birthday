@@ -2,29 +2,33 @@
 
 <!doctype html>
 <html>
-    <head>
-        <title>Happy Birthday</title>
-          <link rel="stylesheet" href="https://unpkg.com/98.css" />
-    </head>
-    <body style="background: #057;">
-        <div class="window" style="margin: 32px; margin:auto; width: 500px;">
+
+<head>
+    <title>Happy Birthday</title>
+    <link rel="stylesheet" href="https://unpkg.com/98.css" />
+</head>
+
+<body style="background: #057;">
+    <div class="window" style="margin: 32px; margin:auto; width: 500px;">
         <div class="title-bar">
-        <div class="title-bar-text">
-            Birthdays
-        </div>
+            <div class="title-bar-text">
+                Birthdays
+            </div>
         </div>
         <div class="window-body">
-            <p>My goal is to make a little app which emails me on and before my friends' birthdays. BFC doesn't have email yet, so this is just a starting point. Add yourself!</p>
+            <p>My goal is to make a little app which emails me on and before my friends' birthdays. BFC doesn't have
+                email yet, so this is just a starting point. Add yourself!</p>
             {{range $birthday := .Birthdays}}
-                <div> 
-                        <form action="/remove" method="post" style="display: inline" onsubmit="return confirm('Are you sure you want to remove?');">
-                            <input type="hidden" name="id" value="{{$birthday.Id}}" />
-                            <button type="submit">Defriend</button>
-                        </form>
-                        <span style="margin-left:10px">
+            <div>
+                <form action="/remove" method="post" style="display: inline"
+                    onsubmit="return confirm('Are you sure you want to remove?');">
+                    <input type="hidden" name="id" value="{{$birthday.Id}}" />
+                    <button type="submit">Defriend</button>
+                </form>
+                <span style="margin-left:10px">
                         {{$birthday.Name}} on {{$birthday.Month}} {{$birthday.Day}}
                         </span>
-                </div>
+            </div>
             {{ end }}
             <br/><br/>
             <form action="/add" method="post">
@@ -48,7 +52,8 @@
             </form>
         </div>
     </div>
-    </body>
+</body>
+
 </html>
 
 {{ end }}
