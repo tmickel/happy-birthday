@@ -16,8 +16,7 @@
             </div>
         </div>
         <div class="window-body">
-            <p>My goal is to make a little app which emails me on and before my friends' birthdays. BFC doesn't have
-                email yet, so this is just a starting point. Add yourself!</p>
+            <p>My goal is to make a little app which emails me on and before my friends' birthdays. Add yourself!</p>
             {{range $birthday := .Birthdays}}
             <div>
                 <form action="/remove" method="post" style="display: inline"
