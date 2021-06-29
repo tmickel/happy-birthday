@@ -3,7 +3,7 @@
 This app sends me (Tim) an email 3 days before my friends' birthdays,
 and again on the day of.
 
-I can almost never remember dates, and I find that birthdays get lost in my calendar.
+I can almost never remember dates, and birthdays get lost in my calendar.
 Setting up the alerts in my calendar is also a little cumbersome when I want the same schedule for every birthday.
 
 ### How it works:
