@@ -1,4 +1,9 @@
 {
-    "jobs": [],
-    "requireLogin": false
+    "jobs": [
+        {
+            "expression": "0 12 * * *",
+            "path": "/daily"
+        }
+    ],
+    "private": false
 }

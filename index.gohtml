@@ -12,11 +12,13 @@
     <div class="window" style="margin: 32px; margin:auto; width: 500px;">
         <div class="title-bar">
             <div class="title-bar-text">
-                Birthdays
+                Happy Birthday 🥳
             </div>
         </div>
         <div class="window-body">
-            <p>My goal is to make a little app which emails me on and before my friends' birthdays. Add yourself!</p>
+            <p>This little app sends me an email on my friends' birthdays, and three days before.</p>
+            <p>Learn more on my <a target="_blank" href="https://github.com/tmickel/happy-birthday">repo</a>.</p>
+            <p>Add yourself, and please don't remove anyone -- this is real!</p>
             {{range $birthday := .Birthdays}}
             <div>
                 <form action="/remove" method="post" style="display: inline"

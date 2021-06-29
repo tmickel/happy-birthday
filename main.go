@@ -2,13 +2,17 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	_ "github.com/lib/pq"
+	sendgrid "github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
 type Birthday struct {
@@ -27,6 +31,10 @@ func run() error {
 	if err != nil {
 		return err
 	}
+
+	http.HandleFunc("/daily", func(w http.ResponseWriter, r *http.Request) {
+		dailyCheck(w, db)
+	})
 
 	http.HandleFunc("/add", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" {
@@ -65,20 +73,6 @@ func run() error {
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		rows, err := db.Query(`SELECT id, name, month, day FROM birthdays order by to_date(month || ' ' || day,'Month DD');`)
-		if err != nil {
-			http.Error(w, "failed to read", http.StatusInternalServerError)
-			return
-		}
-		birthdays := []Birthday{}
-		for rows.Next() {
-			birthday := Birthday{}
-			if err := rows.Scan(&birthday.Id, &birthday.Name, &birthday.Month, &birthday.Day); err != nil {
-				http.Error(w, "failed to scan", http.StatusInternalServerError)
-				return
-			}
-			birthdays = append(birthdays, birthday)
-		}
 
 		tpl, err := template.ParseFiles("./index.gohtml")
 		if err != nil {
@@ -87,8 +81,13 @@ func run() error {
 			return
 		}
 
+		birthdays, err := birthdaysQuery(db)
+		if err != nil {
+			http.Error(w, "failed to get birthdays", http.StatusInternalServerError)
+		}
+
 		templateData := TemplateData{
-			Birthdays: birthdays,
+			Birthdays: *birthdays,
 		}
 		if err := tpl.ExecuteTemplate(w, "index", templateData); err != nil {
 			fmt.Fprint(w, fmt.Sprintf("template error: %v", err))
@@ -100,8 +99,60 @@ func run() error {
 	return nil
 }
 
+func birthdaysQuery(db *sql.DB) (*[]Birthday, error) {
+	rows, err := db.Query(`SELECT id, name, month, day FROM birthdays order by to_date(month || ' ' || day,'Month DD');`)
+	if err != nil {
+		return nil, err
+	}
+	birthdays := []Birthday{}
+	for rows.Next() {
+		birthday := Birthday{}
+		if err := rows.Scan(&birthday.Id, &birthday.Name, &birthday.Month, &birthday.Day); err != nil {
+			return nil, errors.New("failed to scan")
+		}
+		birthdays = append(birthdays, birthday)
+	}
+	return &birthdays, nil
+}
+
 func main() {
 	if err := run(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func dailyCheck(w http.ResponseWriter, db *sql.DB) {
+	sentCount := 0
+	birthdays, err := birthdaysQuery(db)
+	if err != nil {
+		http.Error(w, "failed to get birthdays", http.StatusInternalServerError)
+	}
+
+	for _, birthday := range *birthdays {
+		if birthday.Month == time.Now().Month().String() && birthday.Day == time.Now().Day() {
+			sendMail(birthday.Name, "today")
+			sentCount++
+		}
+		future := time.Now().Add(3 * 24 * time.Hour)
+		if birthday.Month == future.Month().String() && birthday.Day == future.Day() {
+			sendMail(birthday.Name, "on "+future.Weekday().String())
+			sentCount++
+		}
+	}
+
+	fmt.Fprintf(w, "success; sent %d", sentCount)
+}
+
+func sendMail(name string, day string) error {
+	from := mail.NewEmail("Tim Mickel", "tim@tmickel.com")
+	subject := name + "'s birthday " + day
+	to := mail.NewEmail("Tim Mickel", "tim@tmickel.com")
+	plainTextContent := "🥳"
+	message := mail.NewSingleEmail(from, subject, to, plainTextContent, plainTextContent)
+	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+	_, err := client.Send(message)
+	if err != nil {
+		return err
+	}
+	return nil
 }
