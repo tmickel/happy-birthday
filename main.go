@@ -68,7 +68,24 @@ func run() error {
 		}
 
 		id := r.PostForm.Get("id")
+
+		row := db.QueryRow(`SELECT name, month, day FROM birthdays WHERE id = $1 LIMIT 1`, id)
+
+		var birthday Birthday
+		if err := row.Scan(&birthday.Name, &birthday.Month, &birthday.Day); err != nil {
+			log.Printf("could not scan for delete: %v", err)
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		if err := sendDeleteNotice(&birthday); err != nil {
+			log.Printf("could not delete: %v", err)
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
 		db.Exec(`delete from birthdays where id = $1`, id)
+
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 
@@ -130,12 +147,12 @@ func dailyCheck(w http.ResponseWriter, db *sql.DB) {
 
 	for _, birthday := range *birthdays {
 		if birthday.Month == time.Now().Month().String() && birthday.Day == time.Now().Day() {
-			sendMail(birthday.Name, "today")
+			sendBirthdayNotice(birthday.Name, "today")
 			sentCount++
 		}
 		future := time.Now().Add(3 * 24 * time.Hour)
 		if birthday.Month == future.Month().String() && birthday.Day == future.Day() {
-			sendMail(birthday.Name, "on "+future.Weekday().String())
+			sendBirthdayNotice(birthday.Name, "on "+future.Weekday().String())
 			sentCount++
 		}
 	}
@@ -143,11 +160,25 @@ func dailyCheck(w http.ResponseWriter, db *sql.DB) {
 	fmt.Fprintf(w, "success; sent %d", sentCount)
 }
 
-func sendMail(name string, day string) error {
+func sendBirthdayNotice(name string, day string) error {
 	from := mail.NewEmail("Tim Mickel", "tim@tmickel.com")
 	subject := name + "'s birthday " + day
 	to := mail.NewEmail("Tim Mickel", "tim@tmickel.com")
 	plainTextContent := "🥳"
+	message := mail.NewSingleEmail(from, subject, to, plainTextContent, plainTextContent)
+	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+	_, err := client.Send(message)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func sendDeleteNotice(birthday *Birthday) error {
+	from := mail.NewEmail("Tim Mickel", "tim@tmickel.com")
+	subject := birthday.Name + " has been defriended"
+	to := mail.NewEmail("Tim Mickel", "tim@tmickel.com")
+	plainTextContent := fmt.Sprintf("Old birthday: %s %d", birthday.Month, birthday.Day)
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, plainTextContent)
 	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 	_, err := client.Send(message)
