@@ -5,7 +5,6 @@
 
 <head>
     <title>Happy Birthday</title>
-    <link rel="stylesheet" href="https://unpkg.com/98.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,6 +15,9 @@
     <style>
         body {
             background: #375aab;
+            font-family: "Helvetica Neue";
+            font-size: 14px;
+            color: #000;
         }
 
         select,
@@ -34,35 +36,35 @@
         input[type="search"],
         input[type="tel"],
         input[type="color"] {
-            font-size: 16px;
+            padding: 5px;
+            font-size: 20px;
+            border: 1px solid #00f;
+            border-radius: 4px;
+            color: #000;
+        }
+
+        button {
+            padding: 5px;
+            background: #fff;
+            border: 1px solid #00f;
+            border-radius: 4px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #eee;
         }
     </style>
 </head>
 
 <body>
-    <div class="window" style="margin: 32px; margin:auto; width: 350px;">
-        <div class="title-bar">
-            <div class="title-bar-text">
-                Happy Birthday 🥳
-            </div>
-        </div>
+    <div style="margin:auto; width: 325px; background: #fff; padding: 10px;">
+        <h4>Happy Birthday 🥳</h4>
         <div class="window-body">
             <p>This little app sends me an email on my friends' birthdays, and three days before.</p>
             <p>Learn more on my <a target="_blank" href="https://github.com/tmickel/happy-birthday">repo</a>.</p>
             <p>Add yourself, and please don't remove anyone -- this is real!</p>
-            {{range $birthday := .Birthdays}}
-            <div>
-                <form action="/remove" method="post" style="display: inline"
-                    onsubmit="return confirm('Are you sure you want to remove {{$birthday.Name}}?');">
-                    <input type="hidden" name="id" value="{{$birthday.Id}}" />
-                    <button type="submit">Defriend</button>
-                </form>
-                <span style="margin-left:10px">
-                        {{$birthday.Name}} on {{$birthday.Month}} {{$birthday.Day}}
-                        </span>
-            </div>
-            {{ end }}
-            <br/><br/>
             <form action="/add" method="post">
                 <input type="text" name="name" placeholder="Name" />
                 <br />
@@ -84,6 +86,19 @@
                 <br />
                 <button type="submit">Add</button>
             </form>
+            <br/><br/>
+            {{range $birthday := .Birthdays}}
+            <div>
+                <form action="/remove" method="post" style="display: inline"
+                    onsubmit="return confirm('Are you sure you want to remove {{$birthday.Name}}?');">
+                    <input type="hidden" name="id" value="{{$birthday.Id}}" />
+                    <button type="submit">Defriend</button>
+                </form>
+                <span style="margin-left:10px">
+                        {{$birthday.Name}} on {{$birthday.Month}} {{$birthday.Day}}
+                        </span>
+            </div>
+            {{ end }}
         </div>
     </div>
 </body>
